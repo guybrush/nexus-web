@@ -1,0 +1,26 @@
+{ "name" : "nexus-web"
+, "version" : "0.0.0"
+, "description" : "web-interface for nexus"
+, "repository" :
+  { "type" : "git"
+  , "url" : "git://github.com/guybrush/nexus-web.git"
+  }
+, "browserify" : "./public/index.js"
+, "main" : "./server.js"
+, "bin" : "./bin/cli.js"
+, "scripts" : { "test" : "node node_modules/tap/bin/tap.js test/*.js" }
+, "dependencies" :
+  { "async-array" : "0.1.7"
+  , "backbone"    : "0.5.3"
+  , "browserify"  : "1.8.0"
+  , "dnode"       : "0.9.2"
+  , "express"     : "2.5.1"
+  , "optimist"    : "0.2.8"
+  , "stylus"      : "0.19.3"
+  , "jade"        : "0.17.0"
+  , "jadevu"      : "0.0.9"
+  , "underscore"  : "1.2.2"
+  }
+, "devDependencies" : { "testling" : "*" }
+, "author" : "Patrick Pfeiffer <patrick@buzzle.at>"
+}
