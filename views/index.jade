@@ -14,9 +14,9 @@ template(id="remote"):
   li.remote #{JSON.stringify(locals)}
   
 template(id="app"):
-  li.app #{id} - #{name}
+  li.app [id:#{id}] [name:#{name}] [version:#{version}]
    
 template(id="proc"):
-  li.proc #{id} - #{name} - #{script} - #{uptime}
+  li.proc [id:#{id}] [name:#{name}] [script:#{script}] [options:#{JSON.stringify(options)}]
 
 
