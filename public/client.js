@@ -31,12 +31,15 @@ models.remote = bb.Model.extend
             , what = split[0]
             , id = split[1]
             , type = split[2]
-          if (what == 'monitor' && (type == 'exit' || type == 'start')) {
+          if (what == 'monitor' && (type == 'exit' || type == 'start' || type == 'connected')) {
             var model = self.procs.get(id)
             self.ps({id:id},function(err, data){
               if (!model) self.procs.add(data)
               else model.set(data)
             })  
+          }
+          else if (what == 'monitor' && type == 'disconnected') {
+            self.procs.remove(self.procs.get(id))
           }
         })
       }
@@ -63,6 +66,7 @@ views.app = bb.View.extend
 ( { initialize: function() {
       var self = this
       this.model.bind('change', function(){self.render()})
+      this.model.bind('remove', function(){$(self.el).remove()})
     } 
   , render: function() {
       $(this.el).html(template('app', this.model.attributes))
@@ -74,6 +78,7 @@ views.proc = bb.View.extend
 ( { initialize: function() {
       var self = this
       this.model.bind('change', function(){self.render()})
+      this.model.bind('remove', function(){$(self.el).remove()})
     } 
   , render: function() {
       $(this.el).html(template('proc', this.model.attributes))
@@ -83,6 +88,8 @@ views.proc = bb.View.extend
 
 views.remote = bb.View.extend
 ( { initialize: function() {
+      var self = this
+      this.model.bind('change',function(){self.render()})
       this.model.apps.bind('add', this.renderApp)
       this.model.procs.bind('add', this.renderProc)
     } 
@@ -102,7 +109,6 @@ views.remote = bb.View.extend
 
 views.nexusWeb = bb.View.extend
 ( { initialize: function(){
-      console.log('nexusWeb',this)
       this.remotes = new collections.remote
       // this.remotes.bind('all',function(){console.log(arguments)})
       this.remotes.bind('add',this.renderRemote)
@@ -114,13 +120,11 @@ views.nexusWeb = bb.View.extend
     }
   , connect: function(){
       var self = this
-      var client = DNode
-      ( { setRemote: function(rem) {
-            if (!self.remotes.get(rem.id)) {
-              self.remotes.add(rem)
-            }
-          }
-        } )
+      var client = DNode({setRemote:function(rem){
+        var model = self.remotes.get(rem.id)
+        if (!model) self.remotes.add(rem)
+        else model.set(rem)
+      }})
         
       client.connect(function(remote, conn){
         // remote.reconnectRemote('someName',function(){})

@@ -1,22 +1,22 @@
 #wrapper
+  h2 remotes
   #remotes
+  h2 apps
   #apps
+  h2 procs
   #procs
   #debug
 
 template(id="nexus"):
   div #{JSON.stringify(locals)}
 
-template(id="app"):
-  div.app #{JSON.stringify(locals)}
-    hr
-    
 template(id="remote"):
-  div.remote #{JSON.stringify(locals)}
-    hr
+  li.remote #{JSON.stringify(locals)}
+  
+template(id="app"):
+  li.app #{id} - #{name}
    
 template(id="proc"):
-  div.proc #{JSON.stringify(locals)}
-    hr
+  li.proc #{id} - #{name} - #{script} - #{uptime}
 
 
