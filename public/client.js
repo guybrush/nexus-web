@@ -3,133 +3,146 @@ var ee2 = new EventEmitter2({wildcard:true,delimiter:'::',maxListeners:20})
   , models = {}
   , collections = {}
   , views = {}
-  
-models.remote = bb.Model.extend()
-collections.remote = bb.Collection.extend({model:models.remote})
-views.remote = bb.View.extend()
-
-models.app = bb.Model.extend()
-collections.app = bb.Collection.extend({model:models.app})
-views.app = bb.View.extend()
-
-models.proc = bb.Model.extend()
-collections.proc = bb.Collection.extend({model:models.proc})
-views.proc = bb.View.extend()
-  
-var client = DNode
-( { setRemote: function(name, opts) {
-      remotes[name] = opts
-      if (opts.status == 'ready') {
-        opts.remote.version(function(err,version){
-          $('#debug').append('<li>'+name+' ► '+version+'</li>')
-        })
-        opts.remote.ls(function(err,data){
-          var cont = $('<div>ls '+name+'</div>')
-          _.each(data,function(x,i){cont.append('<li>'+x.name+'</li>')})
-          $('#debug').append(cont)
-        })
-        opts.remote.ps(function(err,data){
-          var cont = $('<div>ps '+name+'</div>')
-          _.each(data,function(x,i){cont.append('<li>'+x.name+'</li>')})
-          $('#debug').append(cont)
-        })
-      }
-      else {
-        $('#debug').append('<li>'+name+' ► '+opts.status+'</li>')
-      }
-    }
-  } )
-  
-client.connect(function(remote, conn){
-  // remote.reconnectRemote('someName',function(){})
-  // remote.addRemote('someName',opts,function(){})
-})
-
-
-
-
-
-
-
-
-
-
-/************* /
 
 //------------------------------------------------------------------------------
-//                                                          applications
+//                                                models
 //------------------------------------------------------------------------------
   
-models.app = bb.Model.extend()
-
-collections.app = bb.Collection.extend()
-
-views.app = bb.View.extend()
-
-//------------------------------------------------------------------------------
-//                                                          processes
-//------------------------------------------------------------------------------
-
-models.proc = bb.Model.extend()
-
-collections.proc = bb.Collection.extend
-( { initialize: function() {
-      
-    } 
-  } )
-
-views.proc = bb.View.extend()
-
-//------------------------------------------------------------------------------
-//                                                          remotes
-//------------------------------------------------------------------------------
-
 models.remote = bb.Model.extend
 ( { initialize: function() {
-      this.procs = new collections.proc()
-      this.apps = new collections.app()
-    } 
-  } )
-
-collections.remote = bb.Collection.extend
-( { model : models.remote
-  , initialize: function() {
       var self = this
-      //self.nexus = opts.nexus
-      nexus.config(function(err,config){
-        _.each(config.remotes,function(x,i){
-          var model = {id:i,host:x.host,port:x.port}
-          console.log('adding',model)
-          self.add(model)
+      this.apps = new collections.app
+      this.procs = new collections.proc
+      if (this.attributes.status == 'ready') {
+        _.extend(this, this.attributes.remote)
+        this.ls(function(err,apps){
+          _.each(apps,function(x,i){
+            x.id = i
+            self.apps.add(x)
+          })
         })
-      })
+        this.ps(function(err,procs){
+          _.each(procs,function(x,i){
+            self.procs.add(x)
+          })
+        })
+        this.subscribe('all',function(event, data){
+          var split = event.split('::')
+            , what = split[0]
+            , id = split[1]
+            , type = split[2]
+          if (what == 'monitor' && (type == 'exit' || type == 'start')) {
+            var model = self.procs.get(id)
+            self.ps({id:id},function(err, data){
+              if (!model) self.procs.add(data)
+              else model.set(data)
+            })  
+          }
+        })
+      }
     }
   } )
+  
+models.app = bb.Model.extend()
 
-views.remote = bb.View.extend()
+models.proc = bb.Model.extend()
 
 //------------------------------------------------------------------------------
-//                                                          nexus
+//                                                collections
 //------------------------------------------------------------------------------
 
-views.nexus = bb.View.extend
+collections.app = bb.Collection.extend({model:models.app})
+collections.remote = bb.Collection.extend({model:models.remote})
+collections.proc = bb.Collection.extend({model:models.proc})
+
+//------------------------------------------------------------------------------
+//                                                views
+//------------------------------------------------------------------------------
+
+views.app = bb.View.extend
 ( { initialize: function() {
-      this.remotes = new collections.remote()
-    }
+      var self = this
+      this.model.bind('change', function(){self.render()})
+    } 
   , render: function() {
-      var a = 0
-      $(this.el).html(template('nexus', { a:a }))
+      $(this.el).html(template('app', this.model.attributes))
       return this
     }
   } )
 
-var app = bb.Router.extend
-( { initialize: function(opts) {
-      this.view = new views.nexus
-        ( { el: $('#wrapper')[0] } )
-      this.view.render()
+views.proc = bb.View.extend
+( { initialize: function() {
+      var self = this
+      this.model.bind('change', function(){self.render()})
+    } 
+  , render: function() {
+      $(this.el).html(template('proc', this.model.attributes))
+      return this
     }
-  , routes: {}
   } )
-/**/
+
+views.remote = bb.View.extend
+( { initialize: function() {
+      this.model.apps.bind('add', this.renderApp)
+      this.model.procs.bind('add', this.renderProc)
+    } 
+  , render: function() {
+      $(this.el).html(template('remote', this.model.attributes))
+      return this
+    }
+  , renderApp: function(model, collection) {
+      var view = new views.app({model:model})
+      $('#apps').append(view.render().el)
+    }
+  , renderProc: function(model, collection) {
+      var view = new views.proc({model:model})
+      $('#procs').append(view.render().el)
+    }
+  } )
+
+views.nexusWeb = bb.View.extend
+( { initialize: function(){
+      console.log('nexusWeb',this)
+      this.remotes = new collections.remote
+      // this.remotes.bind('all',function(){console.log(arguments)})
+      this.remotes.bind('add',this.renderRemote)
+      this.connect()
+    }
+  , renderRemote: function(model){
+      var view = new views.remote({model:model})
+      $('#remotes').append(view.render().el)
+    }
+  , connect: function(){
+      var self = this
+      var client = DNode
+      ( { setRemote: function(rem) {
+            if (!self.remotes.get(rem.id)) {
+              self.remotes.add(rem)
+            }
+          }
+        } )
+        
+      client.connect(function(remote, conn){
+        // remote.reconnectRemote('someName',function(){})
+        // remote.addRemote('someName',opts,function(){})
+      })
+    }
+  } )
+
+//------------------------------------------------------------------------------
+//                                                router
+//------------------------------------------------------------------------------
+
+var router = bb.Router.extend
+( { initialize: function() {
+      this.view = new views.nexusWeb({el:$('#wrapper')[0]})
+    }
+  , routes: { '!/foo' : 'foo' }
+  , foo: function() {
+      // this.view.foo()
+    } 
+  } )
+
+new router()
+bb.history.start()
 

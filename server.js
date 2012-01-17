@@ -29,7 +29,7 @@ ee2.on('remote::*::*',function(data){
     , name = split[1]
     , event = split[2]
   _.each(clients,function(x,i){
-    x.setRemote(name,remotes[name])
+    x.setRemote(remotes[name])
   })
 })
   
@@ -41,7 +41,7 @@ _.each(config.remotes,function(x,i){addRemote(i,x)})
 
 function addRemote(name, opts, cb) {
   cb = cb || function(){}
-  remotes[name] = {status:'connecting',remote:null}
+  remotes[name] = {id:name,status:'connecting',remote:null}
   opts.port = opts.port || 0xf00
   opts.host = opts.host || '0.0.0.0'
   opts.reconnect = 500
@@ -94,7 +94,7 @@ function reconnectRemote(name, cb) {
 
 function dnodeInterface(remote, conn){
   conn.on('ready',function(){
-    _.each(remotes,function(x,i){remote.setRemote(i,x)})
+    _.each(remotes,function(x,i){remote.setRemote(x)})
     clients[conn.id] = remote
     ee2.emit('client::'+conn.id+'::ready')
   })

@@ -12,22 +12,29 @@ template(id="apps"):
     h2 apps
     div #{JSON.stringify(locals)}
 
-template(id="remote"):
+template(id="app"):
   div
-    h2 remote
+    h3 app
     div #{JSON.stringify(locals)}
 
 template(id="remotes"):
   div
     h2 remotes
     div #{JSON.stringify(locals)}
-
-template(id="proc"):
-  div #{JSON.stringify(locals)}
+    
+template(id="remote"):
+  div
+    h3 remote
+    div #{JSON.stringify(locals)}
 
 template(id="procs"):
   div
     h2 procs
+    div #{JSON.stringify(locals)}
+    
+template(id="proc"):
+  div
+    h3 proc
     div #{JSON.stringify(locals)}
 
 
