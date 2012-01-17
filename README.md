@@ -14,6 +14,4 @@ and start/stop nexus-web like that:
 
     nexus install nexus-web
     nexus start nexus-web -p 3000 -P 1337
-    nexus restart nexus-web
-    nexus stop nexus-web
 

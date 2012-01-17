@@ -1,27 +1,48 @@
-  //
- // nexus - webinterface
-//
+var ee2 = new EventEmitter2({wildcard:true,delimiter:'::',maxListeners:20})
+  , bb = Backbone
+  , models = {}
+  , collections = {}
+  , views = {}
+  
+models.remote = bb.Model.extend()
+collections.remote = bb.Collection.extend({model:models.remote})
+views.remote = bb.View.extend()
 
-var dnode = require('dnode')
-  , _ = require('underscore')
-  , EE2 = require('eventemitter2').EventEmitter2
-  , ee2 = new EE2({wildcard:true,delimiter:'::',maxListeners:20})
+models.app = bb.Model.extend()
+collections.app = bb.Collection.extend({model:models.app})
+views.app = bb.View.extend()
 
-dnode.connect(function(remote,conn){
-  remote.subscribe('*::*::*',function(event,data){
-    $('#debug').prepend('<pre>'+event+' ► '+data+'</pre>')  
-    ee2.emit(event,data)
-  })
-  remote.config(function(err, config){
-    $('#remotes').html(template('remotes',config.remotes))
-  })
-  remote.ps(function(err, data){
-    $('#procs').html(template('procs',data))
-  })
-  remote.ls(null, function(err, data){
-    console.log('ls',err,data)
-    $('#apps').html(template('apps',data))
-  })
+models.proc = bb.Model.extend()
+collections.proc = bb.Collection.extend({model:models.proc})
+views.proc = bb.View.extend()
+  
+var client = DNode
+( { setRemote: function(name, opts) {
+      remotes[name] = opts
+      if (opts.status == 'ready') {
+        opts.remote.version(function(err,version){
+          $('#debug').append('<li>'+name+' ► '+version+'</li>')
+        })
+        opts.remote.ls(function(err,data){
+          var cont = $('<div>ls '+name+'</div>')
+          _.each(data,function(x,i){cont.append('<li>'+x.name+'</li>')})
+          $('#debug').append(cont)
+        })
+        opts.remote.ps(function(err,data){
+          var cont = $('<div>ps '+name+'</div>')
+          _.each(data,function(x,i){cont.append('<li>'+x.name+'</li>')})
+          $('#debug').append(cont)
+        })
+      }
+      else {
+        $('#debug').append('<li>'+name+' ► '+opts.status+'</li>')
+      }
+    }
+  } )
+  
+client.connect(function(remote, conn){
+  // remote.reconnectRemote('someName',function(){})
+  // remote.addRemote('someName',opts,function(){})
 })
 
 
