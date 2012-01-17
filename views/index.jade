@@ -7,34 +7,16 @@
 template(id="nexus"):
   div #{JSON.stringify(locals)}
 
-template(id="apps"):
-  div
-    h2 apps
-    div #{JSON.stringify(locals)}
-
 template(id="app"):
-  div
-    h3 app
-    div #{JSON.stringify(locals)}
-
-template(id="remotes"):
-  div
-    h2 remotes
-    div #{JSON.stringify(locals)}
+  div.app #{JSON.stringify(locals)}
+    hr
     
 template(id="remote"):
-  div
-    h3 remote
-    div #{JSON.stringify(locals)}
-
-template(id="procs"):
-  div
-    h2 procs
-    div #{JSON.stringify(locals)}
-    
+  div.remote #{JSON.stringify(locals)}
+    hr
+   
 template(id="proc"):
-  div
-    h3 proc
-    div #{JSON.stringify(locals)}
+  div.proc #{JSON.stringify(locals)}
+    hr
 
 
