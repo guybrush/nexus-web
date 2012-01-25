@@ -12,7 +12,10 @@ var express = require('express')
   , argv = require('optimist').argv
   , port  = argv.p || 8001
   , host  = argv.h || '0.0.0.0'
-  , configPath = argv.c || '/home/patrick/.nexus/config.js'
+  , home = ( process.platform === "win32" // HAHA!
+             ? process.env.USERPROFILE
+             : process.env.HOME )
+  , configPath = argv.c || home+'/.nexus/config.js'
   , config = require(configPath)
   , remotes = {}
   , clients = {}
