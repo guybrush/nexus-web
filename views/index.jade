@@ -5,6 +5,7 @@
   #apps
   h2 procs
   #procs
+  h2 debug
   #debug
 
 template(id="nexus"):
@@ -17,6 +18,12 @@ template(id="app"):
   li.app [id:#{id}] [name:#{name}] [version:#{version}]
    
 template(id="proc"):
-  li.proc [id:#{id}] [name:#{name}] [script:#{script}] [options:#{JSON.stringify(options)}]
+  li.proc 
+    | [id:#{id}] 
+    | [name:#{name}] 
+    | [script:#{script}] 
+    | [options:#{JSON.stringify(options)}] 
+    | [crashed:#{crashed}] 
+    | [running:#{running}]
 
 

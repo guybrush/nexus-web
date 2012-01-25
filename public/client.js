@@ -41,6 +41,8 @@ models.remote = bb.Model.extend
           else if (what == 'monitor' && type == 'disconnected') {
             self.procs.remove(self.procs.get(id))
           }
+          var debugEl = $('<li><pre>'+event+' → '+data+'</pre></li>')
+          $('#debug').append(debugEl)
         })
       }
     }
